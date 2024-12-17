@@ -1,0 +1,103 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css">
+    <script type="text/javascript">
+      let currentCryptogram = null;
+      const worker = new Worker('./solve_cryptogram.js');
+      let solutions = [];
+      worker.onmessage = event => {
+        const index = solutions.length;
+        const newListItem = document.createElement('li');
+        const itemText = document.createTextNode(event.data.solution);
+        newListItem.appendChild(itemText);
+        newListItem.addEventListener('click', () => {
+          for (const solutionItem of document.getElementById('solutions').children) {
+            solutionItem.classList.remove('selected');
+          }
+          newListItem.classList.add('selected');
+          showSteps(index);
+        }, false);
+        document.getElementById('solutions').appendChild(newListItem);
+        solutions.push(event.data);
+      };
+      function showSteps(index) {
+        document.getElementById('steps').innerHTML = '';
+        document.getElementById('steps').style.visibility = 'visible';
+        for (const step of solutions[index].steps) {
+          const newListItem = document.createElement('li');
+          const itemText = document.createTextNode(step);
+          newListItem.appendChild(itemText);
+          document.getElementById('steps').appendChild(newListItem);
+        }
+      }
+      window.onload = function() {
+        // Mostly copied from https://stackoverflow.com/a/4950836/159388
+        function readFile(evt) {
+          const files = evt.target.files;
+          const file = files[0];
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            document.getElementById('cryptogram').value = event.target.result;
+          }
+          reader.readAsText(file);
+        }
+        document.getElementById('file').addEventListener('change', readFile, false);
+        window.addEventListener('dragenter', event => {
+          event.preventDefault();
+        });
+        window.addEventListener('dragover', event => {
+          event.preventDefault();
+        });
+        window.addEventListener('drop', evt => {
+          const file = evt.dataTransfer.files[0];
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            document.getElementById('cryptogram').value = event.target.result;
+          }
+          reader.readAsText(file);
+          evt.preventDefault();
+        })
+      }
+      function solve() {
+        currentCryptogram = document.getElementById('cryptogram').value.trim().replace(/\s+/mg, ' ');
+        worker.postMessage({
+          command: 'SOLVE',
+          cryptogram: currentCryptogram
+        });
+        document.getElementById('solutions').innerHTML = '';
+        document.getElementById('steps').innerHTML = '';
+        document.getElementById('steps').style.visibility = 'hidden';
+      }
+      function stop() {
+        worker.postMessage({
+          command: 'STOP'
+        });
+      }
+      function resume() {
+        worker.postMessage({
+          command: 'RESUME'
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <div class="content-outer">
+      <div class="content-inner">
+        <h1>Cryptogram Solver</h1>
+        <h2>Cryptogram</h2>
+        <textarea id="cryptogram" rows="4"></textarea>
+        <div id="buttons">
+          <input id="file" type="file" />
+          <button onclick="solve()"><b>Solve</b></button>
+          <button onclick="stop()">Stop</button>
+          <button onclick="resume()">Resume</button>
+        </div>
+        <h2>Solutions</h2>
+      </div>
+      <ul id="solutions" class="content-inner solution-group">
+      </ul>
+      <ul id="steps" class="solution-group">
+      </ul>
+    </div>
+  </body>
+</html>

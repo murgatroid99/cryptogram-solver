@@ -3,7 +3,7 @@ import re
 import sys
 
 words = []
-with open('word_list2.txt', 'r') as f:
+with open('word_list2.txt', 'r', encoding='utf8') as f:
   words = list(word.rstrip('\n.').upper() for word in f)
 
 word_set = set(words)

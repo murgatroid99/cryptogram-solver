@@ -1,0 +1,50 @@
+.content-outer {
+  width: 80%;
+  margin-left: auto;
+}
+
+.content-inner {
+  width: fit-content;
+  margin-right: auto;
+}
+
+#cryptogram {
+  width: 100%;
+}
+
+#buttons {
+  width: fit-content;
+  margin: auto;
+}
+
+ul {
+  overflow-y: auto;
+  min-height: 50px;
+  max-height: 100%;
+  padding-left: 0;
+  list-style: none;
+  list-style-position: inside;
+}
+
+ul#solutions {
+  background: lightgray;
+}
+
+ul#solutions li:hover {
+  background: rgb(230, 230, 230);
+}
+
+ul#solutions li.selected {
+  background: lightblue;
+}
+
+ul#steps {
+  background: lightblue;
+  visibility: hidden;
+  font-size: 75%;
+}
+
+.solution-group {
+  display: inline-block;
+  vertical-align: top;
+}
