@@ -6,6 +6,16 @@
       const worker = new Worker('./solve_cryptogram.js');
       let solutions = [];
       worker.onmessage = event => {
+        if (event.data.finished) {
+          if (solutions.length === 0) {
+            document.getElementById('info').innerText = 'No solutions found';
+            document.getElementById('info').style.color = 'darkred';
+          } else {
+            document.getElementById('info').innerText = '';
+            document.getElementById('info').style.color = 'black';
+          }
+          return;
+        }
         const index = solutions.length;
         const newListItem = document.createElement('li');
         const itemText = document.createTextNode(event.data.solution);
@@ -67,6 +77,8 @@
         document.getElementById('solutions').innerHTML = '';
         document.getElementById('steps').innerHTML = '';
         document.getElementById('steps').style.visibility = 'hidden';
+        document.getElementById('info').innerText = 'Solving...';
+        document.getElementById('info').style.color = 'black';
       }
       function stop() {
         worker.postMessage({
@@ -93,6 +105,7 @@
           <button onclick="resume()">Resume</button>
         </div>
         <h2>Solutions</h2>
+        <span id="info"></span>
       </div>
       <ul id="solutions" class="content-inner solution-group">
       </ul>

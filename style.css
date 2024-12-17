@@ -17,6 +17,10 @@
   margin: auto;
 }
 
+#info {
+  font-size: 150%;
+}
+
 ul {
   overflow-y: auto;
   min-height: 50px;

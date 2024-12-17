@@ -103,7 +103,9 @@ function* trySolveWord(cryptoList: string[], partialMap: SolutionMap, tried: Sol
   if (!getWordRegex(cryptoWord, partialMap).test(word)) {
     return;
   }
-  const wordMap: SolutionMap = Object.fromEntries(cryptoWord.split('').filter(x => UPPERCASE.has(x)).map((letter, index) => [letter, word[index]]));
+  const cryptoLetters = cryptoWord.split('').filter(x => UPPERCASE.has(x));
+  const wordLetters = word.split('').filter(x => UPPERCASE.has(x));
+  const wordMap: SolutionMap = Object.fromEntries(cryptoLetters.map((letter, index) => [letter, wordLetters[index]]));
   if (!(validateMap(wordMap) && wordIsSolved(cryptoWord, wordMap) && mapsAreConsistent(wordMap, partialMap))) {
     return;
   }
@@ -141,11 +143,6 @@ function* solveCryptogramHelper(cryptoList: string[], partialMap: SolutionMap, t
       finalMap: partialMap,
       solutionSequence: sequence
     };
-  }
-  if (cryptoList.some(cryptoWord => countMatching(cryptoWord, partialMap) === 0)) {
-    for (const splitCryptoList of splitContractions(cryptoList)) {
-      yield* solveCryptogramHelper(splitCryptoList, partialMap, tried, sequence);
-    }
   }
   const cryptoWord = [...cryptoList].filter(word => !wordIsSolved(word, partialMap)).sort((a, b) => countMatching(a, partialMap) - countMatching(b, partialMap))[0];
   let foundAnySolutions = false;
@@ -189,6 +186,9 @@ function sendSolutions() {
       return;
     }
   }
+  postMessage({
+    finished: true
+  });
 }
 
 onmessage = event => {
