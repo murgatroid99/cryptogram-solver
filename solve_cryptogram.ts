@@ -41,7 +41,7 @@ function validateMap(partialMap: SolutionMap) {
 }
 
 function applyMap(text: string, fullMap: SolutionMap) {
-  return text.split('').map(letter => fullMap[letter] ?? letter).join('');
+  return text.split('').map(letter => fullMap[letter] ?? (UPPERCASE.has(letter) ? '*' : letter)).join('');
 }
 
 function applyPartialMap(text: string, partialMap: SolutionMap) {
@@ -63,6 +63,9 @@ function getWordRegex(word: string, partialMap: SolutionMap) {
       } else if (letter in partialMap) {
         regexParts.push(partialMap[letter]);
       } else {
+        if (Object.keys(letterGroup).length > 0) {
+          regexParts.push(`(?!${Object.values(letterGroup).join('|')})`);
+        }
         letterGroup[letter] = `\\${nextGroup++}`;
         regexParts.push(`(${getMissingLetterRegex(letter, partialMap)})`);
       }
@@ -113,6 +116,7 @@ function* trySolveWord(cryptoList: string[], partialMap: SolutionMap, tried: Sol
   if (tried.some(triedMap => mapsEqual(combinedMap, triedMap))) {
     return;
   }
+  console.log(applyPartialMap(cryptoList.join(' '), combinedMap));
   if (cryptoList.every(cWord => validateWord(cWord, combinedMap))) {
     if (cryptoList.every(cWord => wordIsSolved(cWord, combinedMap))) {
       yield {
@@ -159,9 +163,23 @@ function* solveCryptogramHelper(cryptoList: string[], partialMap: SolutionMap, t
   }
 }
 
+function* solveCryptogramWithUnknown(cryptoList: string[]): Generator<Solution, void, void> {
+  let foundAnySolutions = false;
+  for (const solution of solveCryptogramHelper(cryptoList, {}, [], [])) {
+    yield solution;
+    foundAnySolutions = true;
+  }
+  for (let i = 0; i < cryptoList.length && !foundAnySolutions; i++) {
+    for (const solution of solveCryptogramHelper([...cryptoList.slice(i), ...cryptoList.slice(i+1, cryptoList.length-1)], {}, [], [])) {
+      yield solution;
+      foundAnySolutions = true;
+    }
+  }
+}
+
 function* solveCryptogram(cryptogram: string) {
   const cryptoList = cryptogram.split(/\s|-/).map(word => word.replace(/[,.!?:;"')]+$/, '').replace(/^["(]+/, ''));
-  yield* solveCryptogramHelper(cryptoList, {}, [], []);
+  yield* solveCryptogramWithUnknown(cryptoList);
 }
 
 interface ControlMessage {
